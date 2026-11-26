@@ -1,6 +1,6 @@
 # Web pública de restaurantes
 
-Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. La Fase 1.2 organiza las pantallas temporales por funcionalidad y permite recorrer las 14 rutas de demostración.
+Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. Las 14 rutas de demostración tienen pantallas organizadas por funcionalidad. La Fase 1.3 define los tipos de dominio internos.
 
 ## Instalación y ejecución
 
@@ -42,12 +42,12 @@ src/
 │   └── feedback/
 ├── features/
 │   ├── home/components/
-│   ├── discovery/components/
-│   ├── restaurants/components/
-│   ├── availability/
-│   ├── reservations/components/
+│   ├── discovery/       # components/ y types/
+│   ├── restaurants/     # components/ y types/
+│   ├── availability/    # types/
+│   ├── reservations/    # components/ y types/
 │   ├── auth/components/
-│   ├── account/components/
+│   ├── account/         # components/ y types/
 │   └── page-builder/
 │       ├── blocks/
 │       ├── editor/
@@ -87,7 +87,7 @@ src/
 | `home` | Pantalla inicial y entrada al directorio. |
 | `discovery` | Directorio, búsqueda y filtros. Incluye la pantalla temporal del directorio. |
 | `restaurants` | Ficha pública del restaurante, información, horarios y menú. Incluye la ficha temporal. |
-| `availability` | Consulta de disponibilidad por restaurante, fecha, hora y número de personas. Directorio reservado. |
+| `availability` | Modelos para consultar disponibilidad por restaurante, fecha y número de personas y representar los horarios devueltos. |
 | `reservations` | Flujo de reserva y confirmación. Incluye ambas pantallas temporales. |
 | `auth` | Acceso y registro de clientes. Incluye las pantallas temporales de inicio de sesión y registro. |
 | `account` | Perfil y consulta del historial de reservas del cliente. Incluye ambas pantallas temporales. |
@@ -102,6 +102,40 @@ src/
 - Mantén el renderizador público libre de dependencias del editor. Las fichas públicas podrán componer el renderizador desde `app/`. Consulta los [límites de page-builder](src/features/page-builder/README.md).
 
 Los directorios reservados contienen `.gitkeep` para que Git los incluya antes de incorporar su primera implementación. Las pantallas actuales son demostrativas. La disponibilidad, las reservas, la autenticación, la persistencia y la edición visual están pendientes de implementación.
+
+## Modelos de dominio
+
+| Ubicación | Responsabilidad |
+| --- | --- |
+| `features/restaurants/types/` | Resumen para el directorio, ficha, ubicación, contacto público, cocinas, imágenes, horarios comerciales y menú. |
+| `features/discovery/types/` | Filtros de búsqueda y paginación opcional. |
+| `features/availability/types/` | Consulta por restaurante, fecha y número de personas, horarios reservables y resultado. |
+| `features/reservations/types/` | Solicitud, contacto de reserva y registro con su estado para invitados o clientes registrados. |
+| `features/account/types/` | Identidad y datos de contacto básicos del perfil del cliente. |
+| `src/types/date-time.ts` | Convenciones de instante y zona horaria compartidas entre funcionalidades. |
+
+Los modelos son internos y provisionales. Los DTO se definirán a partir del contrato oficial cuando backend lo publique. Los adaptadores de cada funcionalidad realizarán la validación y conversión en la frontera con la API. Esta fase describe tipos estáticos.
+
+### Convenciones de tipado
+
+- **Identificadores**. Se usan cadenas opacas cuya estructura interna no se interpreta. El `slug` es un valor de navegación separado del identificador del restaurante.
+- **Fechas y horas**. La fecha de consulta es `YYYY-MM-DD` en la zona del restaurante. El horario comercial usa horas locales `HH:mm` de 24 horas. Cada día identifica si está cerrado o contiene uno o más intervalos. `closesNextDay` permite representar cierres después de medianoche. Los horarios reservables y las reservas usan instantes serializables RFC 3339 con desplazamiento UTC explícito o `Z`. [RFC 3339](https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6)
+- **Zona horaria**. La ficha y el resultado de disponibilidad indican un identificador IANA, como `America/Mexico_City`. La ficha aporta el contexto del horario comercial y el resultado de disponibilidad conserva la zona incluso para una lista vacía. [Base de zonas horarias IANA](https://www.iana.org/time-zones)
+- **Importes**. El precio del menú usa un entero seguro no negativo en unidades monetarias menores y un código alfabético ISO 4217. La escala depende de la moneda. Por ejemplo, `12500` con `MXN` representa 125 pesos. [ISO 4217](https://www.iso.org/iso-4217-currency-codes.html)
+- **Opcionales**. Se omiten los campos que no apliquen o cuyo valor aún no esté disponible. Una lista presente y vacía expresa ausencia de elementos. Por ejemplo, `slots: []` indica que la consulta no devuelve horarios. La paginación provisional usa páginas numeradas desde 1.
+
+### Datos operativos y personalización
+
+Los horarios comerciales describen la apertura habitual. La disponibilidad de reservas corresponde a una fecha y un tamaño de grupo y siempre se confirma con backend. Una solicitud contiene el horario elegido y el contacto necesario. Una reserva confirmada exige una referencia. Los estados de reserva provisionales son `pending`, `confirmed` y `cancelled`. La identidad de una cuenta autenticada deberá provenir de backend.
+
+El tema, la composición y el contenido editorial pertenecen a la personalización. Los precios, la disponibilidad de productos y horarios reservables y las reglas de reservas pertenecen a la operación. Los bloques correspondientes deberán consultar datos autorizados del restaurante. Consulta los [requisitos del futuro PageDocument](src/features/page-builder/README.md#requisitos-del-futuro-pagedocument).
+
+### Decisiones pendientes con backend
+
+- Acordar formato de identificadores y slugs, catálogo de cocinas, campos públicos de ubicación y contacto, y modalidad de paginación.
+- Acordar publicación de horarios comerciales, formato de fechas y zonas, y cómo se identifica un horario reservable al solicitar una reserva.
+- Confirmar monedas, unidades menores, estado público de productos y orden del menú.
+- Acordar estados y transiciones de reserva, emisión de referencias, datos mínimos de contacto e identidad de invitados y clientes registrados.
 
 ## Rutas y layouts
 
