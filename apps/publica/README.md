@@ -1,6 +1,6 @@
 # Web pública de restaurantes
 
-Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. Las páginas de esta fase permiten recorrer los flujos de navegación.
+Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. La Fase 1.2 organiza las pantallas temporales por funcionalidad y permite recorrer las 14 rutas de demostración.
 
 ## Instalación y ejecución
 
@@ -24,22 +24,84 @@ Abre http://localhost:3000. La página inicial funciona sin variables de entorno
 | `npm run lint` | Ejecuta ESLint. |
 | `npm run typecheck` | Genera los tipos de rutas y comprueba TypeScript sin emitir JavaScript. |
 
-## Estructura
+## Arquitectura modular
+
+```text
+src/
+├── app/
+│   ├── (public)/
+│   ├── (restaurant)/
+│   ├── (auth)/
+│   ├── (account)/
+│   ├── (booking)/
+│   └── (editor)/
+├── components/
+│   ├── layout/
+│   ├── ui/
+│   ├── shared/
+│   └── feedback/
+├── features/
+│   ├── home/components/
+│   ├── discovery/components/
+│   ├── restaurants/components/
+│   ├── availability/
+│   ├── reservations/components/
+│   ├── auth/components/
+│   ├── account/components/
+│   └── page-builder/
+│       ├── blocks/
+│       ├── editor/
+│       ├── renderer/
+│       ├── registry/
+│       ├── schemas/
+│       ├── theme/
+│       ├── hooks/
+│       ├── services/
+│       ├── types/
+│       └── utils/
+├── config/
+├── hooks/
+├── lib/
+├── mocks/
+├── styles/
+└── types/
+```
 
 | Ruta | Contenido |
 | --- | --- |
-| `src/app/` | Rutas, páginas y layouts de App Router. |
-| `src/components/` | Componentes reutilizables. |
-| `src/features/` | Código agrupado por funcionalidad. |
-| `src/lib/` | Utilidades e integraciones compartidas. |
+| `src/app/` | Rutas, layouts, metadatos, parámetros y composición de pantallas. Incluye las páginas informativas y los estados que App Router resuelve por convención. |
+| `src/components/` | Layouts de navegación y componentes reutilizables. `ui/` se reserva para elementos base, `shared/` para composiciones reutilizadas y `feedback/` para estados compartidos. |
+| `src/features/` | Pantallas, lógica e integraciones específicas de cada funcionalidad. |
+| `src/lib/` | Infraestructura y utilidades generales que pueden usar varias funcionalidades. |
 | `src/hooks/` | Hooks reutilizables de React. |
 | `src/types/` | Tipos compartidos de la aplicación. |
-| `src/config/` | Configuración de la aplicación. |
+| `src/config/` | Configuración transversal, incluidas las rutas estáticas y los generadores de rutas dinámicas. |
 | `src/styles/` | Hoja global y entrada de Tailwind CSS. |
-| `src/mocks/` | Datos simulados para desarrollo y pruebas. |
+| `src/mocks/` | Espacio reservado para futuros datos de demostración en desarrollo y pruebas. |
 | `public/images/`, `public/icons/`, `public/fonts/` | Recursos estáticos. |
 
-El alias `@/*` resuelve a `src/*`. Los archivos `.gitkeep` conservan en Git las carpetas vacías.
+### Responsabilidades por funcionalidad
+
+| Módulo | Responsabilidad en la aplicación |
+| --- | --- |
+| `home` | Pantalla inicial y entrada al directorio. |
+| `discovery` | Directorio, búsqueda y filtros. Incluye la pantalla temporal del directorio. |
+| `restaurants` | Ficha pública del restaurante, información, horarios y menú. Incluye la ficha temporal. |
+| `availability` | Consulta de disponibilidad por restaurante, fecha, hora y número de personas. Directorio reservado. |
+| `reservations` | Flujo de reserva y confirmación. Incluye ambas pantallas temporales. |
+| `auth` | Acceso y registro de clientes. Incluye las pantallas temporales de inicio de sesión y registro. |
+| `account` | Perfil y consulta del historial de reservas del cliente. Incluye ambas pantallas temporales. |
+| `page-builder` | Edición, vista previa y renderizado de páginas personalizadas. Incluye el contenido temporal del workspace y de la vista previa. |
+
+### Convenciones de código y dependencias
+
+- `app/` resuelve los parámetros de Next.js y compone las pantallas de `features/`. Las pantallas reciben los valores como props y usan Server Components por defecto.
+- Coloca los componentes de un dominio en su módulo. Extrae a `components/` los elementos con reutilización real entre pantallas. Los componentes compartidos pueden importar configuración e infraestructura general y deben quedar libres de dependencias de `features/`.
+- Coloca un adaptador de un dominio en `features/<módulo>/services/` cuando exista una integración concreta. Reserva `lib/` para infraestructura y utilidades transversales y `config/` para configuración compartida.
+- Importa los archivos concretos y usa `@/*` para resolver desde `src/*` cuando facilite la lectura. Evita las dependencias circulares y los `index.ts` globales que reexportan módulos completos.
+- Mantén el renderizador público libre de dependencias del editor. Las fichas públicas podrán componer el renderizador desde `app/`. Consulta los [límites de page-builder](src/features/page-builder/README.md).
+
+Los directorios reservados contienen `.gitkeep` para que Git los incluya antes de incorporar su primera implementación. Las pantallas actuales son demostrativas. La disponibilidad, las reservas, la autenticación, la persistencia y la edición visual están pendientes de implementación.
 
 ## Rutas y layouts
 

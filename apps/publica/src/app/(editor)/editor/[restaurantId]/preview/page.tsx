@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { routes } from "@/config/routes";
+import { RestaurantPreviewContent } from "@/features/page-builder/renderer/RestaurantPreviewContent";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -14,9 +15,7 @@ export default async function EditorPreviewPage({
 
   return (
     <main className="mx-auto max-w-3xl space-y-3 px-4 py-8 sm:px-6">
-      <h1>Vista previa del restaurante</h1>
-      <p>Restaurante de demostración <bdi className="break-all">{restaurantId}</bdi>.</p>
-      <p>Aquí se podrá revisar la ficha pública antes de publicarla.</p>
+      <RestaurantPreviewContent restaurantId={restaurantId} />
       <Link href={routes.editor(restaurantId)}>Volver al editor</Link>
     </main>
   );

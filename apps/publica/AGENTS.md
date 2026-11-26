@@ -6,7 +6,9 @@
 - Implementa rutas con App Router bajo `src/app/`. Usa componentes de servidor por defecto y añade componentes de cliente cuando necesites interacción o APIs del navegador.
 - Consulta las guías de la versión instalada en `node_modules/next/dist/docs/` al usar APIs de Next.js.
 - Conserva TypeScript estricto y usa `@/*` para importar desde `src/`. Agrupa el código de cada funcionalidad en `src/features/` y coloca los componentes reutilizables en `src/components/`.
+- Resuelve los parámetros de ruta y compón las pantallas en `src/app/`. Mantén `src/components/` libre de dependencias de funcionalidades concretas. Importa archivos específicos y evita dependencias circulares. Consulta la [arquitectura modular](README.md#arquitectura-modular).
 - Renderiza las fichas de restaurante en el servidor para que sus contenidos sean indexables.
+- Mantén la ficha pública y el renderizador de `page-builder` libres de dependencias del workspace y de las herramientas del editor.
 
 ## Integración y datos
 
