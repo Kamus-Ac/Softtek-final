@@ -1,4 +1,14 @@
 import { RestaurantNavigation } from "@/components/layout/RestaurantNavigation";
+import { demoRestaurantSlug } from "@/config/routes";
+import { dataServices } from "@/lib/data-services";
+
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  const restaurants = await dataServices.restaurants.list();
+
+  return [...restaurants.map(({ slug }) => ({ slug })), { slug: demoRestaurantSlug }];
+}
 
 export default async function RestaurantLayout({
   children,

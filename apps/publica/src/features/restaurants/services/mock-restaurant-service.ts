@@ -9,7 +9,14 @@ function normalize(value: string) {
 
 function summarize({ id, slug, name, cuisines, location, coverImage }: RestaurantDetail): RestaurantSummary {
   const { city, state, country } = location;
-  return { id, slug, name, cuisines, location: { city, state, country }, ...(coverImage && { coverImage }) };
+  return {
+    id,
+    slug,
+    name,
+    cuisines: [...cuisines],
+    location: { city, state, country },
+    ...(coverImage && { coverImage: { ...coverImage } }),
+  };
 }
 
 export const mockRestaurantService: RestaurantService = {
@@ -44,10 +51,12 @@ export const mockRestaurantService: RestaurantService = {
 
   async getBySlug(slug) {
     const target = slug === demoRestaurantSlug ? "casa-oliva" : slug;
-    return mockRestaurants.find((restaurant) => restaurant.slug === target) ?? null;
+    const restaurant = mockRestaurants.find((restaurant) => restaurant.slug === target);
+    return restaurant ? structuredClone(restaurant) : null;
   },
 
   async getMenu(restaurantId) {
-    return mockRestaurants.find((restaurant) => restaurant.id === restaurantId)?.menu ?? null;
+    const menu = mockRestaurants.find((restaurant) => restaurant.id === restaurantId)?.menu;
+    return menu ? structuredClone(menu) : null;
   },
 };

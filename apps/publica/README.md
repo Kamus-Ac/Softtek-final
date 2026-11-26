@@ -1,16 +1,36 @@
 # Web pública de restaurantes
 
-Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. La Fase 1.4 conecta el directorio y las fichas de las 14 rutas a servicios del servidor con datos ficticios locales.
+Aplicación pública del monorepo con 14 patrones de ruta. El directorio y las fichas consumen servicios de servidor con datos ficticios locales. La compilación de producción sirve para demostración técnica.
+
+| Fase | Entrega |
+| --- | --- |
+| 0 | Inicialización, scripts y configuración. |
+| 1.1 | Rutas, layouts y navegación. |
+| 1.2 | Módulos por funcionalidad y estructura de Page Builder. |
+| 1.3 | Modelos internos de dominio. |
+| 1.4 | Datos ficticios, adaptadores de servicios y fichas de demostración. |
+| 1.5 | Auditoría, aislamiento de resultados de servicios y pruebas reproducibles. |
 
 ## Instalación y ejecución
 
 Usa Node.js 24 LTS y npm. La configuración se verificó con Node.js 24.19.0 y npm 11.17.0. El rango compatible se indica en `engines.node` de `package.json`.
 
+| Tecnología | Versión instalada |
+| --- | --- |
+| Next.js con App Router / `eslint-config-next` | 16.4.6 |
+| React / React DOM | 19.3.1 |
+| TypeScript estricto | 5.9.3 |
+| Tailwind CSS / `@tailwindcss/postcss` | 4.3.5 |
+| PostCSS | 8.5.33 |
+| ESLint | 9.39.5 |
+
+ESLint 9 llegó al fin de soporte. La migración queda pendiente de verificar compatibilidad de `eslint-config-next` y sus plugins con ESLint 10. [Soporte de versiones de ESLint](https://eslint.org/version-support/)
+
 Desde la raíz del repositorio:
 
 ```sh
 cd apps/publica
-npm install
+npm ci
 npm run dev
 ```
 
@@ -23,6 +43,19 @@ Abre http://localhost:3000. La página inicial funciona sin variables de entorno
 | `npm run start` | Sirve la compilación de producción después de `npm run build`. |
 | `npm run lint` | Ejecuta ESLint. |
 | `npm run typecheck` | Genera los tipos de rutas y comprueba TypeScript sin emitir JavaScript. |
+
+### Validación
+
+Desde `apps/publica`, con Node.js 24:
+
+```sh
+npm run lint
+npm run typecheck
+node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/mock-services.test.mjs
+npm run build
+```
+
+Las pruebas usan el ejecutor nativo de Node.js y comprueban integridad de datos, filtros, paginación, aislamiento de resultados y disponibilidad. Para una comprobación HTTP de producción ejecuta `npm run start -- --port 3100` si ese puerto está libre. Visita el directorio, las tres fichas, el alias, las rutas de reserva y las dos vistas del editor. Comprueba también el código HTTP, además del contenido, en `/restaurantes/no-existe` y en una URL inexistente fuera del catálogo.
 
 ## Arquitectura modular
 
@@ -146,7 +179,7 @@ El tema, la composición y el contenido editorial pertenecen a la personalizaci�
 
 `src/lib/data-services.ts` selecciona los adaptadores del servidor. Durante esta fase ambos usan las fuentes locales de `src/mocks/`, también al ejecutar una compilación local de producción. Antes de publicar la plataforma real, se sustituirán ambos adaptadores en ese archivo, se retirará el alias de demostración y se verificará que el despliegue use el contrato autorizado. Las rutas seguirán consumiendo las mismas interfaces y cada adaptador convertirá los DTO del backend a modelos de dominio.
 
-Las fichas se prerenderizan para el catálogo finito de la demo y su alias. Así Next.js puede responder HTTP 404 para un slug desconocido antes de iniciar el streaming. Al integrar un catálogo que cambie en tiempo de ejecución habrá que revisar `dynamicParams` en la ficha y verificar de nuevo el código HTTP 404. [Generación de parámetros estáticos en Next.js](https://nextjs.org/docs/app/api-reference/functions/generate-static-params)
+El layout compartido por ficha y reserva obtiene los slugs de `RestaurantService.list()` mediante `generateStaticParams` y añade el alias de `config/routes.ts`. Con `dynamicParams = false`, una ficha incluida después del build y su página de reserva quedan fuera de ese despliegue hasta volver a compilar. Así Next.js puede responder HTTP 404 para un slug desconocido antes de iniciar el streaming. Para un catálogo dinámico, hay que decidir con backend cuándo se resuelve un slug que no estaba en el build, cómo se invalidan las fichas y cómo se conserva el estado HTTP 404. Una pantalla 404 puede llegar con HTTP 200 si la respuesta ya empezó a transmitirse. [Generación de parámetros estáticos](https://nextjs.org/docs/app/api-reference/functions/generate-static-params) · [Streaming y códigos HTTP](https://nextjs.org/docs/app/api-reference/file-conventions/loading)
 
 La búsqueda de restaurantes compara el texto con el nombre y la descripción. Los filtros admiten coincidencia exacta por ciudad y cualquiera de las cocinas seleccionadas. Las comparaciones ignoran mayúsculas y acentos. La paginación empieza en 1, conserva el orden del conjunto de demostración y se aplica después de filtrar. El filtro `partySize` se reserva para una composición posterior: cuando el flujo capture una fecha, consultará disponibilidad para los candidatos y aplicará el criterio antes de paginar, o delegará la operación a backend si el contrato admite ese filtro.
 
@@ -168,6 +201,13 @@ Consulta los restaurantes, los casos de disponibilidad y los pasos de verificaci
 Los enlaces internos usan `src/config/routes.ts`. El layout raíz comparte idioma y estilos. La plataforma, el restaurante, la autenticación y la cuenta tienen sus propias estructuras. En el editor, el grupo anidado `(workspace)` aplica el panel de herramientas a la pantalla de edición y deja la vista previa en una rama hermana.
 
 Desde `/restaurantes` puedes abrir las fichas de `casa-oliva`, `raiz-norte` y `kumo`. `/restaurantes/restaurante-demo` sigue disponible como alias de Casa Oliva. También puedes probar `/restaurantes/restaurante-demo/reservar`, `/editor/demo-restaurant` y `/editor/demo-restaurant/preview`. Las rutas de cuenta y del editor, incluida la vista previa, requieren autenticación y autorización reales en el servidor antes de producción.
+
+## Límites de la demostración y preparación para publicar
+
+- Las pantallas de reserva y confirmación son demostrativas. La reserva se abre para los mismos slugs que sus fichas y la futura implementación tendrá que confirmar disponibilidad y crear la reserva mediante backend.
+- `/login` y `/registro` son pantallas informativas. `/perfil` y `/mis-reservas` requieren autenticación y autorización para consultar datos de una cuenta.
+- El workspace y la vista previa necesitan autenticación, autorización en servidor y verificación de propiedad o permisos sobre el restaurante. La lectura de borradores y la publicación requieren permisos propios. El renderizador público consumirá contenido publicado.
+- Antes de publicar, sustituye los adaptadores mock, retira el alias de demostración y valida los DTO recibidos de la API antes de convertirlos. Acuerda con backend el contrato de catálogo, disponibilidad y reservas, además de la política de visibilidad de fichas y borradores.
 
 ## Responsabilidades
 
