@@ -1,6 +1,6 @@
 # Web pública de restaurantes
 
-Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. Las 14 rutas de demostración tienen pantallas organizadas por funcionalidad. La Fase 1.3 define los tipos de dominio internos.
+Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. La Fase 1.4 conecta el directorio y las fichas de las 14 rutas a servicios del servidor con datos ficticios locales.
 
 ## Instalación y ejecución
 
@@ -43,8 +43,8 @@ src/
 ├── features/
 │   ├── home/components/
 │   ├── discovery/       # components/ y types/
-│   ├── restaurants/     # components/ y types/
-│   ├── availability/    # types/
+│   ├── restaurants/     # components/, services/ y types/
+│   ├── availability/    # services/ y types/
 │   ├── reservations/    # components/ y types/
 │   ├── auth/components/
 │   ├── account/         # components/ y types/
@@ -77,7 +77,7 @@ src/
 | `src/types/` | Tipos compartidos de la aplicación. |
 | `src/config/` | Configuración transversal, incluidas las rutas estáticas y los generadores de rutas dinámicas. |
 | `src/styles/` | Hoja global y entrada de Tailwind CSS. |
-| `src/mocks/` | Espacio reservado para futuros datos de demostración en desarrollo y pruebas. |
+| `src/mocks/` | Restaurantes, menús, horarios y escenarios de disponibilidad ficticios para desarrollo y pruebas. |
 | `public/images/`, `public/icons/`, `public/fonts/` | Recursos estáticos. |
 
 ### Responsabilidades por funcionalidad
@@ -85,9 +85,9 @@ src/
 | Módulo | Responsabilidad en la aplicación |
 | --- | --- |
 | `home` | Pantalla inicial y entrada al directorio. |
-| `discovery` | Directorio, búsqueda y filtros. Incluye la pantalla temporal del directorio. |
-| `restaurants` | Ficha pública del restaurante, información, horarios y menú. Incluye la ficha temporal. |
-| `availability` | Modelos para consultar disponibilidad por restaurante, fecha y número de personas y representar los horarios devueltos. |
+| `discovery` | Directorio y tipos de filtros. El listado básico muestra los restaurantes del servicio. |
+| `restaurants` | Fichas públicas y acceso a restaurantes y menús mediante un servicio. |
+| `availability` | Modelos y consulta simulada por restaurante, fecha y número de personas. |
 | `reservations` | Flujo de reserva y confirmación. Incluye ambas pantallas temporales. |
 | `auth` | Acceso y registro de clientes. Incluye las pantallas temporales de inicio de sesión y registro. |
 | `account` | Perfil y consulta del historial de reservas del cliente. Incluye ambas pantallas temporales. |
@@ -101,7 +101,7 @@ src/
 - Importa los archivos concretos y usa `@/*` para resolver desde `src/*` cuando facilite la lectura. Evita las dependencias circulares y los `index.ts` globales que reexportan módulos completos.
 - Mantén el renderizador público libre de dependencias del editor. Las fichas públicas podrán componer el renderizador desde `app/`. Consulta los [límites de page-builder](src/features/page-builder/README.md).
 
-Los directorios reservados contienen `.gitkeep` para que Git los incluya antes de incorporar su primera implementación. Las pantallas actuales son demostrativas. La disponibilidad, las reservas, la autenticación, la persistencia y la edición visual están pendientes de implementación.
+Los directorios reservados contienen `.gitkeep` para que Git los incluya antes de incorporar su primera implementación. Las pantallas actuales son demostrativas. La consulta de disponibilidad real, las reservas, la autenticación, la persistencia y la edición visual siguen pendientes.
 
 ## Modelos de dominio
 
@@ -137,6 +137,23 @@ El tema, la composición y el contenido editorial pertenecen a la personalizaci�
 - Confirmar monedas, unidades menores, estado público de productos y orden del menú.
 - Acordar estados y transiciones de reserva, emisión de referencias, datos mínimos de contacto e identidad de invitados y clientes registrados.
 
+## Servicios y origen de datos
+
+| Interfaz | Operaciones asíncronas |
+| --- | --- |
+| `RestaurantService` | `list(filters?)`, `getBySlug(slug)` y `getMenu(restaurantId)`. |
+| `AvailabilityService` | `getAvailability({ restaurantId, date, partySize })`. |
+
+`src/lib/data-services.ts` selecciona los adaptadores del servidor. Durante esta fase ambos usan las fuentes locales de `src/mocks/`, también al ejecutar una compilación local de producción. Antes de publicar la plataforma real, se sustituirán ambos adaptadores en ese archivo, se retirará el alias de demostración y se verificará que el despliegue use el contrato autorizado. Las rutas seguirán consumiendo las mismas interfaces y cada adaptador convertirá los DTO del backend a modelos de dominio.
+
+Las fichas se prerenderizan para el catálogo finito de la demo y su alias. Así Next.js puede responder HTTP 404 para un slug desconocido antes de iniciar el streaming. Al integrar un catálogo que cambie en tiempo de ejecución habrá que revisar `dynamicParams` en la ficha y verificar de nuevo el código HTTP 404. [Generación de parámetros estáticos en Next.js](https://nextjs.org/docs/app/api-reference/functions/generate-static-params)
+
+La búsqueda de restaurantes compara el texto con el nombre y la descripción. Los filtros admiten coincidencia exacta por ciudad y cualquiera de las cocinas seleccionadas. Las comparaciones ignoran mayúsculas y acentos. La paginación empieza en 1, conserva el orden del conjunto de demostración y se aplica después de filtrar. El filtro `partySize` se reserva para una composición posterior: cuando el flujo capture una fecha, consultará disponibilidad para los candidatos y aplicará el criterio antes de paginar, o delegará la operación a backend si el contrato admite ese filtro.
+
+Un listado sin coincidencias devuelve `[]`. Un restaurante desconocido devuelve `null` y la ficha pública lo transforma en un 404. Una consulta de disponibilidad válida sin horarios devuelve un resultado con `slots: []`. Las fechas o tamaños de grupo inválidos y la paginación inválida se rechazan con `RangeError`. Son convenciones internas de los adaptadores actuales.
+
+Consulta los restaurantes, los casos de disponibilidad y los pasos de verificación en el [README de datos de demostración](src/mocks/README.md).
+
 ## Rutas y layouts
 
 | Grupo | Rutas |
@@ -150,7 +167,7 @@ El tema, la composición y el contenido editorial pertenecen a la personalizaci�
 
 Los enlaces internos usan `src/config/routes.ts`. El layout raíz comparte idioma y estilos. La plataforma, el restaurante, la autenticación y la cuenta tienen sus propias estructuras. En el editor, el grupo anidado `(workspace)` aplica el panel de herramientas a la pantalla de edición y deja la vista previa en una rama hermana.
 
-Para probar las rutas dinámicas, abre `/restaurantes/restaurante-demo`, `/restaurantes/restaurante-demo/reservar`, `/editor/demo-restaurant` y `/editor/demo-restaurant/preview`. Los identificadores de estas páginas son demostrativos. Las rutas de cuenta y del editor, incluida la vista previa, requieren autenticación y autorización reales en el servidor antes de producción.
+Desde `/restaurantes` puedes abrir las fichas de `casa-oliva`, `raiz-norte` y `kumo`. `/restaurantes/restaurante-demo` sigue disponible como alias de Casa Oliva. También puedes probar `/restaurantes/restaurante-demo/reservar`, `/editor/demo-restaurant` y `/editor/demo-restaurant/preview`. Las rutas de cuenta y del editor, incluida la vista previa, requieren autenticación y autorización reales en el servidor antes de producción.
 
 ## Responsabilidades
 
