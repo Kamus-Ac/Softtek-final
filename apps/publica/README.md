@@ -1,6 +1,6 @@
 # Web pública de restaurantes
 
-Aplicación pública del monorepo. Esta base incluye una página de inicio técnica con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint.
+Aplicación pública del monorepo con Next.js App Router, React, TypeScript estricto, Tailwind CSS y ESLint. Las páginas de esta fase permiten recorrer los flujos de navegación.
 
 ## Instalación y ejecución
 
@@ -40,6 +40,21 @@ Abre http://localhost:3000. La página inicial funciona sin variables de entorno
 | `public/images/`, `public/icons/`, `public/fonts/` | Recursos estáticos. |
 
 El alias `@/*` resuelve a `src/*`. Los archivos `.gitkeep` conservan en Git las carpetas vacías.
+
+## Rutas y layouts
+
+| Grupo | Rutas |
+| --- | --- |
+| `(public)` | `/`, `/restaurantes`, `/sobre-nosotros`, `/privacidad`, `/terminos` |
+| `(restaurant)` | `/restaurantes/[slug]`, `/restaurantes/[slug]/reservar` |
+| `(auth)` | `/login`, `/registro` |
+| `(account)` | `/perfil`, `/mis-reservas` |
+| `(booking)` | `/reservas/confirmacion` |
+| `(editor)` | `/editor/[restaurantId]`, `/editor/[restaurantId]/preview` |
+
+Los enlaces internos usan `src/config/routes.ts`. El layout raíz comparte idioma y estilos. La plataforma, el restaurante, la autenticación y la cuenta tienen sus propias estructuras. En el editor, el grupo anidado `(workspace)` aplica el panel de herramientas a la pantalla de edición y deja la vista previa en una rama hermana.
+
+Para probar las rutas dinámicas, abre `/restaurantes/restaurante-demo`, `/restaurantes/restaurante-demo/reservar`, `/editor/demo-restaurant` y `/editor/demo-restaurant/preview`. Los identificadores de estas páginas son demostrativos. Las rutas de cuenta y del editor, incluida la vista previa, requieren autenticación y autorización reales en el servidor antes de producción.
 
 ## Responsabilidades
 

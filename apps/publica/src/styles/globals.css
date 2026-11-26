@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@layer base {
+  h1 {
+    @apply text-2xl font-semibold sm:text-3xl;
+  }
+
+  a {
+    @apply underline underline-offset-2;
+  }
+}
