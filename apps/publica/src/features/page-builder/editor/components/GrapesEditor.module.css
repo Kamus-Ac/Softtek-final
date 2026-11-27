@@ -1,0 +1,9 @@
+.workspace {
+  --gjs-left-width: 13rem;
+  min-width: 64rem;
+}
+
+.workspace :global(.gjs-pn-btn) {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}

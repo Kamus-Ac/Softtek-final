@@ -10,6 +10,7 @@ Aplicación pública del monorepo con 14 patrones de ruta. El directorio y las f
 | 1.3 | Modelos internos de dominio. |
 | 1.4 | Datos ficticios, adaptadores de servicios y fichas de demostración. |
 | 1.5 | Auditoría, aislamiento de resultados de servicios y pruebas reproducibles. |
+| 1.6.1 | Prueba de concepto del editor visual con GrapesJS Core. |
 
 ## Instalación y ejecución
 
@@ -23,6 +24,7 @@ Usa Node.js 24 LTS y npm. La configuración se verificó con Node.js 24.19.0 y n
 | Tailwind CSS / `@tailwindcss/postcss` | 4.3.5 |
 | PostCSS | 8.5.33 |
 | ESLint | 9.39.5 |
+| GrapesJS Core | 0.23.9 (BSD-3-Clause) |
 
 ESLint 9 llegó al fin de soporte. La migración queda pendiente de verificar compatibilidad de `eslint-config-next` y sus plugins con ESLint 10. [Soporte de versiones de ESLint](https://eslint.org/version-support/)
 
@@ -56,6 +58,12 @@ npm run build
 ```
 
 Las pruebas usan el ejecutor nativo de Node.js y comprueban integridad de datos, filtros, paginación, aislamiento de resultados y disponibilidad. Para una comprobación HTTP de producción ejecuta `npm run start -- --port 3100` si ese puerto está libre. Visita el directorio, las tres fichas, el alias, las rutas de reserva y las dos vistas del editor. Comprueba también el código HTTP, además del contenido, en `/restaurantes/no-existe` y en una URL inexistente fuera del catálogo.
+
+### Editor visual experimental
+
+Abre [/editor/demo-restaurant](http://localhost:3000/editor/demo-restaurant) con el servidor de desarrollo activo. Puedes editar el texto del lienzo, arrastrar bloques, cambiar estilos, consultar las capas, deshacer y rehacer, y seleccionar distintos tamaños de dispositivo. El motor y su CSS proceden del paquete `grapesjs`. El workspace carga el motor en un Client Component y destruye la instancia al salir. La ruta `/editor/demo-restaurant/preview` sigue mostrando la vista previa provisional.
+
+Los cambios son temporales. Quedan pendientes los bloques con datos dinámicos, el esquema versionado, la persistencia y el renderizado público del documento. La prueba es para uso local y las rutas administrativas requieren permisos verificados en el servidor. Consulta los archivos, la configuración y las decisiones pendientes en el [README de page-builder](src/features/page-builder/README.md).
 
 ## Arquitectura modular
 
@@ -124,7 +132,7 @@ src/
 | `reservations` | Flujo de reserva y confirmación. Incluye ambas pantallas temporales. |
 | `auth` | Acceso y registro de clientes. Incluye las pantallas temporales de inicio de sesión y registro. |
 | `account` | Perfil y consulta del historial de reservas del cliente. Incluye ambas pantallas temporales. |
-| `page-builder` | Edición, vista previa y renderizado de páginas personalizadas. Incluye el contenido temporal del workspace y de la vista previa. |
+| `page-builder` | Editor visual experimental y presentación provisional de la vista previa. |
 
 ### Convenciones de código y dependencias
 
@@ -134,7 +142,7 @@ src/
 - Importa los archivos concretos y usa `@/*` para resolver desde `src/*` cuando facilite la lectura. Evita las dependencias circulares y los `index.ts` globales que reexportan módulos completos.
 - Mantén el renderizador público libre de dependencias del editor. Las fichas públicas podrán componer el renderizador desde `app/`. Consulta los [límites de page-builder](src/features/page-builder/README.md).
 
-Los directorios reservados contienen `.gitkeep` para que Git los incluya antes de incorporar su primera implementación. Las pantallas actuales son demostrativas. La consulta de disponibilidad real, las reservas, la autenticación, la persistencia y la edición visual siguen pendientes.
+Los directorios reservados contienen `.gitkeep` para que Git los incluya antes de incorporar su primera implementación. Las pantallas actuales son demostrativas. La consulta de disponibilidad real, las reservas, la autenticación y la persistencia siguen pendientes.
 
 ## Modelos de dominio
 
@@ -198,7 +206,7 @@ Consulta los restaurantes, los casos de disponibilidad y los pasos de verificaci
 | `(booking)` | `/reservas/confirmacion` |
 | `(editor)` | `/editor/[restaurantId]`, `/editor/[restaurantId]/preview` |
 
-Los enlaces internos usan `src/config/routes.ts`. El layout raíz comparte idioma y estilos. La plataforma, el restaurante, la autenticación y la cuenta tienen sus propias estructuras. En el editor, el grupo anidado `(workspace)` aplica el panel de herramientas a la pantalla de edición y deja la vista previa en una rama hermana.
+Los enlaces internos usan `src/config/routes.ts`. El layout raíz comparte idioma y estilos. La plataforma, el restaurante, la autenticación y la cuenta tienen sus propias estructuras. En el editor, el grupo anidado `(workspace)` aloja el editor visual y deja la vista previa en una rama hermana.
 
 Desde `/restaurantes` puedes abrir las fichas de `casa-oliva`, `raiz-norte` y `kumo`. `/restaurantes/restaurante-demo` sigue disponible como alias de Casa Oliva. También puedes probar `/restaurantes/restaurante-demo/reservar`, `/editor/demo-restaurant` y `/editor/demo-restaurant/preview`. Las rutas de cuenta y del editor, incluida la vista previa, requieren autenticación y autorización reales en el servidor antes de producción.
 
