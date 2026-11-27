@@ -1,9 +1,11 @@
 import type { Component, Editor, EditorConfig } from "grapesjs";
 import es from "grapesjs/locale/es.mjs";
-import { localImage } from "../../blocks/restaurant-blocks";
 import { registerEditorBlocks } from "../../registry/register-editor-blocks";
 import { builderCanvasStyles } from "../../theme/builder-canvas-styles";
-import type { MenuWidgetData } from "../../types/menu-widget";
+import { pageDeviceWidths, pageImageResource } from "../../theme/page-preset";
+import { restaurantWidgetCanvasStyles } from "../../theme/restaurant-widget-canvas-styles";
+import type { EditorRestaurantContext } from "../../types/restaurant-widgets";
+import { registerPageBlockIdentity } from "../document/block-identity";
 import { editorStyleSectors } from "./editor-style-sectors";
 import { demoComponents, demoStyles } from "./grapes-editor-demo";
 
@@ -26,7 +28,7 @@ function cancelPendingDragCleanup(editor: Editor) {
   }
 }
 
-export function createGrapesEditorConfig(container: HTMLElement, menu: MenuWidgetData | null): EditorConfig {
+export function createGrapesEditorConfig(container: HTMLElement, context: EditorRestaurantContext | null): EditorConfig {
   return {
     container,
     height: "max(38rem, calc(100dvh - 9rem))",
@@ -60,7 +62,7 @@ export function createGrapesEditorConfig(container: HTMLElement, menu: MenuWidge
       },
     },
     assetManager: {
-      assets: [localImage],
+      assets: [pageImageResource],
       upload: false,
       embedAsBase64: false,
       showUrlInput: false,
@@ -68,16 +70,18 @@ export function createGrapesEditorConfig(container: HTMLElement, menu: MenuWidge
     deviceManager: {
       devices: [
         { id: "desktop", name: "Escritorio", width: "" },
-        { id: "tablet", name: "Tablet", width: "768px", widthMedia: "768px" },
-        { id: "mobile", name: "Móvil", width: "375px", widthMedia: "375px" },
+        { id: "tablet", name: "Tablet", width: pageDeviceWidths.tablet, widthMedia: pageDeviceWidths.tablet },
+        { id: "mobile", name: "Móvil", width: pageDeviceWidths.mobile, widthMedia: pageDeviceWidths.mobile },
       ],
     },
     components: demoComponents,
     style: demoStyles + builderCanvasStyles,
+    canvasCss: restaurantWidgetCanvasStyles,
     selectorManager: { componentFirst: true },
     styleManager: { sectors: editorStyleSectors },
     plugins: [
-      (editor) => registerEditorBlocks(editor, menu),
+      registerPageBlockIdentity,
+      (editor) => registerEditorBlocks(editor, context),
       (editor) => {
         const { Panels } = editor;
         Panels.removeButton("options", "export-template");

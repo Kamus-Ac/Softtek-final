@@ -1,11 +1,9 @@
 import "server-only";
 
-import type { MenuItem } from "@/features/restaurants/types/menu";
+import type { Menu, MenuItem } from "@/features/restaurants/types/menu";
 import { dataServices } from "@/lib/data-services";
 import type { MenuWidgetData } from "../types/menu-widget";
 
-const demoEditorId = "demo-restaurant";
-const casaOlivaId = "rest-casa-oliva";
 const localImagePath = /^\/images\/(?:[\w-]+\/)*[\w-]+\.(?:avif|gif|jpe?g|png|svg|webp)$/i;
 
 function formatMenuPrice({ amountMinor, currency }: MenuItem["price"]) {
@@ -20,11 +18,11 @@ function formatMenuPrice({ amountMinor, currency }: MenuItem["price"]) {
 }
 
 export async function getEditorMenu(restaurantId: string): Promise<MenuWidgetData | null> {
-  if (restaurantId !== demoEditorId) return null;
+  const menu = await dataServices.restaurants.getMenu(restaurantId);
+  return menu ? projectMenuFromDetail(menu) : null;
+}
 
-  const menu = await dataServices.restaurants.getMenu(casaOlivaId);
-  if (!menu) return null;
-
+export function projectMenuFromDetail(menu: Menu): MenuWidgetData {
   return {
     name: menu.name,
     categories: menu.categories.map(({ name, items }) => ({

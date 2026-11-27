@@ -1,12 +1,11 @@
 import type { BlockProperties, ComponentDefinition, Editor } from "grapesjs";
+import { pageImageResource } from "../theme/page-preset";
 
 const columnsType = "layout-columns";
 const columnType = "layout-column";
 
-export const localImage = "/images/restaurant-placeholder.svg";
-
 function image(): ComponentDefinition {
-  return { type: "image", attributes: { src: localImage, alt: "Ilustración de un plato" } };
+  return { type: "image", attributes: { src: pageImageResource, alt: "Ilustración de un plato" } };
 }
 
 function columns(count: 2 | 3): ComponentDefinition {

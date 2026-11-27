@@ -10,6 +10,15 @@ export interface MenuWidgetOptions {
   showImages: boolean;
 }
 
+export function getMenuWidgetDefaults(menuName?: string): MenuWidgetOptions {
+  return {
+    menuTitle: menuName ?? "Menú",
+    menuLayout: "list",
+    showDescriptions: true,
+    showImages: true,
+  };
+}
+
 type PublicMenuItem = Readonly<Pick<MenuItem, "name" | "description" | "isAvailable"> & {
   priceLabel: string;
   image?: Readonly<RestaurantImage>;

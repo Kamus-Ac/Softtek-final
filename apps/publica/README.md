@@ -12,6 +12,8 @@ Aplicación pública del monorepo con 14 patrones de ruta. El directorio y las f
 | 1.5 | Auditoría, aislamiento de resultados de servicios y pruebas reproducibles. |
 | 1.6.1 | Prueba de concepto del editor visual con GrapesJS Core. |
 | 1.6.2 | Biblioteca de 13 bloques, composiciones responsivas y widget experimental de menú. |
+| 1.6.3.A | Proyecto editable y documento V1 normalizado con diagnóstico y recarga en memoria. |
+| 1.6.3.B | Widgets experimentales para horarios, ubicación, contacto, disponibilidad y reservaciones. |
 
 ## Instalación y ejecución
 
@@ -54,7 +56,7 @@ Desde `apps/publica`, con Node.js 24:
 ```sh
 npm run lint
 npm run typecheck
-node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/mock-services.test.mjs
+node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/mock-services.test.mjs tests/page-document.test.mjs
 npm run build
 ```
 
@@ -62,9 +64,9 @@ Las pruebas usan el ejecutor nativo de Node.js y comprueban integridad de datos,
 
 ### Editor visual experimental
 
-Abre [/editor/demo-restaurant](http://localhost:3000/editor/demo-restaurant) con el servidor de desarrollo activo. En **Bloques** encontrarás contenido, estructuras, una galería local y bloques de restaurante. Arrastra **Menú dinámico experimental** al lienzo para ver los seis productos de Casa Oliva. Con el widget seleccionado, **Ajustes** cambia el título, la distribución y la visibilidad de descripciones e imágenes. **Estilos** permite personalizar la presentación. Los productos y precios provienen del servicio de restaurantes.
+Abre [/editor/demo-restaurant](http://localhost:3000/editor/demo-restaurant) con el servidor de desarrollo activo. **Bloques** reúne 18 elementos. En **Restaurante** encontrarás la portada, el menú dinámico, los horarios comerciales, la ubicación, el contacto, la disponibilidad y las reservaciones. **Ajustes** edita las opciones de presentación y **Estilos** controla el aspecto por dispositivo. Los datos de Casa Oliva provienen de los servicios de demostración.
 
-Los cambios son temporales. La ruta `/editor/demo-restaurant/preview` sigue mostrando la vista previa provisional. Quedan pendientes el esquema versionado, la persistencia, la publicación, el renderizado público y la autorización en servidor. Consulta los pasos de prueba y las decisiones técnicas en el [README de page-builder](src/features/page-builder/README.md).
+En **Diagnóstico del documento**, **Validar documento** muestra el JSON V1 derivado y **Recargar en memoria** reconstruye los widgets a partir del contexto público. V1 admite los cinco tipos nuevos y conserva el formato de los bloques anteriores. La disponibilidad muestra dos consultas fijas y el botón de reservaciones está deshabilitado en el lienzo. Quedan pendientes el flujo real de reserva, el renderizado público, la persistencia, la publicación y la autorización en servidor. Consulta la [documentación de page-builder](src/features/page-builder/README.md).
 
 ## Arquitectura modular
 
@@ -170,7 +172,7 @@ Los modelos son internos y provisionales. Los DTO se definirán a partir del con
 
 Los horarios comerciales describen la apertura habitual. La disponibilidad de reservas corresponde a una fecha y un tamaño de grupo y siempre se confirma con backend. Una solicitud contiene el horario elegido y el contacto necesario. Una reserva confirmada exige una referencia. Los estados de reserva provisionales son `pending`, `confirmed` y `cancelled`. La identidad de una cuenta autenticada deberá provenir de backend.
 
-El tema, la composición y el contenido editorial pertenecen a la personalización. Los precios, la disponibilidad de productos y horarios reservables y las reglas de reservas pertenecen a la operación. Los bloques correspondientes deberán consultar datos autorizados del restaurante. Consulta los [requisitos del futuro PageDocument](src/features/page-builder/README.md#requisitos-del-futuro-pagedocument).
+El tema, la composición y el contenido editorial pertenecen a la personalización. Los precios, la disponibilidad de productos y horarios reservables y las reglas de reservas pertenecen a la operación. Los bloques correspondientes deberán consultar datos autorizados del restaurante. Consulta el [modelo experimental de PageDocument](src/features/page-builder/README.md#proyecto-editable-y-documento-v1).
 
 ### Decisiones pendientes con backend
 

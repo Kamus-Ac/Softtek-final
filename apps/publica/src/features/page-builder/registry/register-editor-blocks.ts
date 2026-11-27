@@ -1,11 +1,12 @@
 import type { Editor } from "grapesjs";
 import { registerLayoutComponents, restaurantBlocks } from "../blocks/restaurant-blocks";
 import { menuWidgetType, registerMenuWidget } from "../blocks/restaurant-menu";
-import type { MenuWidgetData } from "../types/menu-widget";
+import { registerRestaurantWidgets } from "../blocks/restaurant-widgets";
+import type { EditorRestaurantContext } from "../types/restaurant-widgets";
 
-export function registerEditorBlocks(editor: Editor, menu: MenuWidgetData | null) {
+export function registerEditorBlocks(editor: Editor, context: EditorRestaurantContext | null) {
   registerLayoutComponents(editor);
-  registerMenuWidget(editor, menu);
+  registerMenuWidget(editor, context?.menu ?? null);
 
   for (const block of restaurantBlocks) {
     editor.BlockManager.add(block.id, block);
@@ -15,4 +16,5 @@ export function registerEditorBlocks(editor: Editor, menu: MenuWidgetData | null
     category: "Restaurante",
     content: { type: menuWidgetType },
   });
+  registerRestaurantWidgets(editor, context);
 }

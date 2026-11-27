@@ -1,5 +1,5 @@
 import type { Component, Editor } from "grapesjs";
-import type { MenuWidgetData, MenuWidgetOptions } from "../types/menu-widget";
+import { getMenuWidgetDefaults, type MenuWidgetData, type MenuWidgetOptions } from "../types/menu-widget";
 
 export const menuWidgetType = "restaurant-menu";
 
@@ -74,12 +74,7 @@ function renderMenu(root: HTMLElement, menu: MenuWidgetData | null, options: Men
 }
 
 export function registerMenuWidget(editor: Editor, menu: MenuWidgetData | null) {
-  const defaults: MenuWidgetOptions = {
-    menuTitle: menu?.name ?? "Menú",
-    menuLayout: "list",
-    showDescriptions: true,
-    showImages: true,
-  };
+  const defaults = getMenuWidgetDefaults(menu?.name);
 
   editor.Components.addType(menuWidgetType, {
     model: {
