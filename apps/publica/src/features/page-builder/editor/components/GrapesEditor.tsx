@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { Editor } from "grapesjs";
 import "grapesjs/dist/css/grapes.min.css";
+import type { MenuWidgetData } from "../../types/menu-widget";
 import { createGrapesEditorConfig } from "../config/grapes-editor-config";
 import styles from "./GrapesEditor.module.css";
 
-export function GrapesEditor() {
+export function GrapesEditor({ menu }: { menu: MenuWidgetData | null }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
@@ -22,7 +23,7 @@ export function GrapesEditor() {
         const { default: grapesjs } = await import("grapesjs");
         if (cancelled) return;
 
-        editor = grapesjs.init(createGrapesEditorConfig(container));
+        editor = grapesjs.init(createGrapesEditorConfig(container, menu));
         editor.on("load", () => {
           if (!cancelled) setStatus("ready");
         });
@@ -39,7 +40,7 @@ export function GrapesEditor() {
       cancelled = true;
       editor?.destroy();
     };
-  }, []);
+  }, [menu]);
 
   return (
     <div className="overflow-x-auto">

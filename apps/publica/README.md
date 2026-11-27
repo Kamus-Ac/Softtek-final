@@ -11,6 +11,7 @@ Aplicación pública del monorepo con 14 patrones de ruta. El directorio y las f
 | 1.4 | Datos ficticios, adaptadores de servicios y fichas de demostración. |
 | 1.5 | Auditoría, aislamiento de resultados de servicios y pruebas reproducibles. |
 | 1.6.1 | Prueba de concepto del editor visual con GrapesJS Core. |
+| 1.6.2 | Biblioteca de 13 bloques, composiciones responsivas y widget experimental de menú. |
 
 ## Instalación y ejecución
 
@@ -61,9 +62,9 @@ Las pruebas usan el ejecutor nativo de Node.js y comprueban integridad de datos,
 
 ### Editor visual experimental
 
-Abre [/editor/demo-restaurant](http://localhost:3000/editor/demo-restaurant) con el servidor de desarrollo activo. Puedes editar el texto del lienzo, arrastrar bloques, cambiar estilos, consultar las capas, deshacer y rehacer, y seleccionar distintos tamaños de dispositivo. El motor y su CSS proceden del paquete `grapesjs`. El workspace carga el motor en un Client Component y destruye la instancia al salir. La ruta `/editor/demo-restaurant/preview` sigue mostrando la vista previa provisional.
+Abre [/editor/demo-restaurant](http://localhost:3000/editor/demo-restaurant) con el servidor de desarrollo activo. En **Bloques** encontrarás contenido, estructuras, una galería local y bloques de restaurante. Arrastra **Menú dinámico experimental** al lienzo para ver los seis productos de Casa Oliva. Con el widget seleccionado, **Ajustes** cambia el título, la distribución y la visibilidad de descripciones e imágenes. **Estilos** permite personalizar la presentación. Los productos y precios provienen del servicio de restaurantes.
 
-Los cambios son temporales. Quedan pendientes los bloques con datos dinámicos, el esquema versionado, la persistencia y el renderizado público del documento. La prueba es para uso local y las rutas administrativas requieren permisos verificados en el servidor. Consulta los archivos, la configuración y las decisiones pendientes en el [README de page-builder](src/features/page-builder/README.md).
+Los cambios son temporales. La ruta `/editor/demo-restaurant/preview` sigue mostrando la vista previa provisional. Quedan pendientes el esquema versionado, la persistencia, la publicación, el renderizado público y la autorización en servidor. Consulta los pasos de prueba y las decisiones técnicas en el [README de page-builder](src/features/page-builder/README.md).
 
 ## Arquitectura modular
 

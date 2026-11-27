@@ -1,6 +1,11 @@
 import type { Component, Editor, EditorConfig } from "grapesjs";
 import es from "grapesjs/locale/es.mjs";
-import { demoBlocks, demoComponents, demoStyles, localImage } from "./grapes-editor-demo";
+import { localImage } from "../../blocks/restaurant-blocks";
+import { registerEditorBlocks } from "../../registry/register-editor-blocks";
+import { builderCanvasStyles } from "../../theme/builder-canvas-styles";
+import type { MenuWidgetData } from "../../types/menu-widget";
+import { editorStyleSectors } from "./editor-style-sectors";
+import { demoComponents, demoStyles } from "./grapes-editor-demo";
 
 function cancelPendingDragCleanup(editor: Editor) {
   const { shallow, events } = editor.Components;
@@ -21,7 +26,7 @@ function cancelPendingDragCleanup(editor: Editor) {
   }
 }
 
-export function createGrapesEditorConfig(container: HTMLElement): EditorConfig {
+export function createGrapesEditorConfig(container: HTMLElement, menu: MenuWidgetData | null): EditorConfig {
   return {
     container,
     height: "max(38rem, calc(100dvh - 9rem))",
@@ -63,14 +68,16 @@ export function createGrapesEditorConfig(container: HTMLElement): EditorConfig {
     deviceManager: {
       devices: [
         { id: "desktop", name: "Escritorio", width: "" },
-        { id: "tablet", name: "Tablet", width: "768px" },
-        { id: "mobile", name: "Móvil", width: "375px" },
+        { id: "tablet", name: "Tablet", width: "768px", widthMedia: "768px" },
+        { id: "mobile", name: "Móvil", width: "375px", widthMedia: "375px" },
       ],
     },
     components: demoComponents,
-    style: demoStyles,
-    blockManager: { blocks: demoBlocks },
+    style: demoStyles + builderCanvasStyles,
+    selectorManager: { componentFirst: true },
+    styleManager: { sectors: editorStyleSectors },
     plugins: [
+      (editor) => registerEditorBlocks(editor, menu),
       (editor) => {
         const { Panels } = editor;
         Panels.removeButton("options", "export-template");

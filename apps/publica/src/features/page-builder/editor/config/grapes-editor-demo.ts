@@ -1,7 +1,3 @@
-import type { EditorConfig } from "grapesjs";
-
-export const localImage = "/images/restaurant-placeholder.svg";
-
 export const demoComponents = `
   <section class="demo-hero">
     <h1>Bienvenidos al restaurante</h1>
@@ -21,19 +17,3 @@ export const demoStyles = `
   .demo-container { padding: 1.5rem 2rem; min-height: 8rem; }
   img { max-width: 100%; }
 `;
-
-export const demoBlocks: NonNullable<EditorConfig["blockManager"]>["blocks"] = [
-  { id: "text", label: "Texto", content: "<p>Escribe tu texto aquí.</p>" },
-  { id: "heading", label: "Título", content: "<h2>Título de sección</h2>" },
-  {
-    id: "section",
-    label: "Sección",
-    content: { tagName: "section", style: { padding: "1rem" }, components: "<p>Nueva sección</p>" },
-  },
-  {
-    id: "image",
-    label: "Imagen local",
-    content: { type: "image", attributes: { src: localImage, alt: "Ilustración de un plato" } },
-  },
-  { id: "button", label: "Botón", content: '<button type="button">Botón de ejemplo</button>' },
-];
