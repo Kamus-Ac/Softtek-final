@@ -1,0 +1,80 @@
+[
+  {
+    "event_id": "10000000-0000-4000-8000-000000000001",
+    "schema_version": "1.0",
+    "type": "mesa.desatendida",
+    "restaurant_id": "20000000-0000-4000-8000-000000000001",
+    "occurred_at": "2026-11-27T18:05:00Z",
+    "source": "vision",
+    "data": {
+      "mesa_id": "30000000-0000-4000-8000-000000000001",
+      "desde": "2026-11-27T18:00:00Z",
+      "duracion_seg": 300,
+      "severidad": "advertencia"
+    }
+  },
+  {
+    "event_id": "10000000-0000-4000-8000-000000000002",
+    "schema_version": "1.0",
+    "type": "mesa.atendida",
+    "restaurant_id": "20000000-0000-4000-8000-000000000001",
+    "occurred_at": "2026-11-27T18:06:00Z",
+    "source": "vision",
+    "data": {
+      "mesa_id": "30000000-0000-4000-8000-000000000001",
+      "desde": "2026-11-27T18:00:00Z",
+      "duracion_seg": 360
+    }
+  },
+  {
+    "event_id": "10000000-0000-4000-8000-000000000003",
+    "schema_version": "1.0",
+    "type": "mesa.estado_actualizado",
+    "restaurant_id": "20000000-0000-4000-8000-000000000001",
+    "occurred_at": "2026-11-27T18:06:01Z",
+    "source": "api",
+    "data": {
+      "mesa_id": "30000000-0000-4000-8000-000000000001",
+      "state": "ocupada",
+      "unattended": false
+    }
+  },
+  {
+    "event_id": "10000000-0000-4000-8000-000000000004",
+    "schema_version": "1.0",
+    "type": "pedido.creado",
+    "restaurant_id": "20000000-0000-4000-8000-000000000001",
+    "occurred_at": "2026-11-27T18:07:00Z",
+    "source": "api",
+    "data": {
+      "order_id": "40000000-0000-4000-8000-000000000001",
+      "mesa_id": "30000000-0000-4000-8000-000000000001",
+      "state": "pendiente"
+    }
+  },
+  {
+    "event_id": "10000000-0000-4000-8000-000000000005",
+    "schema_version": "1.0",
+    "type": "pedido.estado_actualizado",
+    "restaurant_id": "20000000-0000-4000-8000-000000000001",
+    "occurred_at": "2026-11-27T18:08:00Z",
+    "source": "api",
+    "data": {
+      "order_id": "40000000-0000-4000-8000-000000000001",
+      "mesa_id": "30000000-0000-4000-8000-000000000001",
+      "state": "en_preparacion"
+    }
+  },
+  {
+    "event_id": "10000000-0000-4000-8000-000000000006",
+    "schema_version": "1.0",
+    "type": "reserva.estado_actualizado",
+    "restaurant_id": "20000000-0000-4000-8000-000000000001",
+    "occurred_at": "2026-11-27T18:09:00Z",
+    "source": "api",
+    "data": {
+      "reservation_id": "50000000-0000-4000-8000-000000000001",
+      "state": "confirmada"
+    }
+  }
+]

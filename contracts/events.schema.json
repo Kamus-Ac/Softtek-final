@@ -1,0 +1,462 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:softtek:restaurant-platform:events:1.0",
+  "title": "Eventos de restaurante v1",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/EventMesaDesatendida"
+    },
+    {
+      "$ref": "#/$defs/EventMesaAtendida"
+    },
+    {
+      "$ref": "#/$defs/EventMesaEstadoActualizado"
+    },
+    {
+      "$ref": "#/$defs/EventPedidoCreado"
+    },
+    {
+      "$ref": "#/$defs/EventPedidoEstadoActualizado"
+    },
+    {
+      "$ref": "#/$defs/EventReservaEstadoActualizado"
+    }
+  ],
+  "$defs": {
+    "EventMesaDesatendida": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "mesa.desatendida"
+          ]
+        },
+        "restaurant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "vision"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mesa_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "desde": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "duracion_seg": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "severidad": {
+              "type": "string",
+              "enum": [
+                "advertencia",
+                "critica"
+              ]
+            }
+          },
+          "required": [
+            "mesa_id",
+            "desde",
+            "duracion_seg",
+            "severidad"
+          ]
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_version",
+        "type",
+        "restaurant_id",
+        "occurred_at",
+        "source",
+        "data"
+      ]
+    },
+    "EventMesaAtendida": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "mesa.atendida"
+          ]
+        },
+        "restaurant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "vision"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mesa_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "desde": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "duracion_seg": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "mesa_id",
+            "desde",
+            "duracion_seg"
+          ]
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_version",
+        "type",
+        "restaurant_id",
+        "occurred_at",
+        "source",
+        "data"
+      ]
+    },
+    "EventMesaEstadoActualizado": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "mesa.estado_actualizado"
+          ]
+        },
+        "restaurant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "api"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mesa_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "state": {
+              "$ref": "#/$defs/TableState"
+            },
+            "unattended": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "mesa_id",
+            "state",
+            "unattended"
+          ]
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_version",
+        "type",
+        "restaurant_id",
+        "occurred_at",
+        "source",
+        "data"
+      ]
+    },
+    "EventPedidoCreado": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "pedido.creado"
+          ]
+        },
+        "restaurant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "api"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "order_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "mesa_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "state": {
+              "$ref": "#/$defs/OrderState"
+            }
+          },
+          "required": [
+            "order_id",
+            "mesa_id",
+            "state"
+          ]
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_version",
+        "type",
+        "restaurant_id",
+        "occurred_at",
+        "source",
+        "data"
+      ]
+    },
+    "EventPedidoEstadoActualizado": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "pedido.estado_actualizado"
+          ]
+        },
+        "restaurant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "api"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "order_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "mesa_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "state": {
+              "$ref": "#/$defs/OrderState"
+            }
+          },
+          "required": [
+            "order_id",
+            "mesa_id",
+            "state"
+          ]
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_version",
+        "type",
+        "restaurant_id",
+        "occurred_at",
+        "source",
+        "data"
+      ]
+    },
+    "EventReservaEstadoActualizado": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "reserva.estado_actualizado"
+          ]
+        },
+        "restaurant_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "api"
+          ]
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reservation_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "state": {
+              "$ref": "#/$defs/ReservationState"
+            }
+          },
+          "required": [
+            "reservation_id",
+            "state"
+          ]
+        }
+      },
+      "required": [
+        "event_id",
+        "schema_version",
+        "type",
+        "restaurant_id",
+        "occurred_at",
+        "source",
+        "data"
+      ]
+    },
+    "TableState": {
+      "type": "string",
+      "enum": [
+        "libre",
+        "ocupada",
+        "pidio",
+        "cuenta"
+      ]
+    },
+    "OrderState": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "en_preparacion",
+        "lista",
+        "servida",
+        "cancelada"
+      ]
+    },
+    "ReservationState": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "confirmada",
+        "cancelada",
+        "llego",
+        "no_asistio"
+      ]
+    }
+  }
+}

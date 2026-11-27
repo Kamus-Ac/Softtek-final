@@ -1,0 +1,4237 @@
+openapi: 3.1.0
+info:
+  title: Plataforma de restaurantes
+  version: 0.1.0
+  description: Contrato inicial para demo. Reglas de negocio, permisos y WebSocket
+    en contracts/README.md. No implica backend implementado.
+servers:
+- url: http://localhost:8000/api/v1
+  description: Desarrollo local
+tags:
+- name: Auth
+- name: Gestión
+- name: Público
+- name: Visión
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Iniciar sesión de personal
+      tags:
+      - Auth
+      security: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      description: El restaurant_id selecciona el contexto; la API verifica membresía.
+        Aplicar rate limiting. No almacenar tokens en URLs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Consultar sesión
+      tags:
+      - Auth
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+  /restaurants:
+    get:
+      operationId: listRestaurants
+      summary: Listar restaurantes de la plataforma
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestaurantPage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+    post:
+      operationId: createRestaurant
+      summary: Crear restaurante
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      x-roles:
+      - platform_admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestaurantCreate'
+  /restaurants/{restaurant_id}:
+    get:
+      operationId: getRestaurant
+      summary: Consultar configuración del restaurante
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+    patch:
+      operationId: updateRestaurant
+      summary: Actualizar perfil y configuración
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestaurantUpdate'
+    delete:
+      operationId: archiveRestaurant
+      summary: Archivar restaurante y despublicarlo
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '204':
+          description: Operación completada
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      description: Baja lógica; preserva pedidos y reservas. 409 si hay reservas futuras
+        o pedidos activos.
+  /restaurants/{restaurant_id}/users:
+    get:
+      operationId: listUsers
+      summary: Listar users
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+    post:
+      operationId: createUser
+      summary: Crear users
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+  /restaurants/{restaurant_id}/users/{user_id}:
+    get:
+      operationId: getUser
+      summary: Consultar users
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+    patch:
+      operationId: updateUser
+      summary: Actualizar users
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+    delete:
+      operationId: deleteUser
+      summary: Dar de baja users
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '204':
+          description: Operación completada
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      description: Baja lógica para usuarios, mesas y productos; preserva referencias
+        históricas. Zonas pueden eliminarse. 409 si existen dependencias operativas
+        activas.
+  /restaurants/{restaurant_id}/tables:
+    get:
+      operationId: listTables
+      summary: Listar tables
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TablePage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+    post:
+      operationId: createTable
+      summary: Crear tables
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Table'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TableCreate'
+  /restaurants/{restaurant_id}/tables/{table_id}:
+    get:
+      operationId: getTable
+      summary: Consultar tables
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Table'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: table_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+    patch:
+      operationId: updateTable
+      summary: Actualizar tables
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Table'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: table_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TableUpdate'
+    delete:
+      operationId: deleteTable
+      summary: Dar de baja tables
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '204':
+          description: Operación completada
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: table_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      description: Baja lógica para usuarios, mesas y productos; preserva referencias
+        históricas. Zonas pueden eliminarse. 409 si existen dependencias operativas
+        activas.
+  /restaurants/{restaurant_id}/zones:
+    get:
+      operationId: listZones
+      summary: Listar zones
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZonePage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+    post:
+      operationId: createZone
+      summary: Crear zones
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZoneCreate'
+  /restaurants/{restaurant_id}/zones/{zone_id}:
+    get:
+      operationId: getZone
+      summary: Consultar zones
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: zone_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+    patch:
+      operationId: updateZone
+      summary: Actualizar zones
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: zone_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZoneUpdate'
+    delete:
+      operationId: deleteZone
+      summary: Dar de baja zones
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '204':
+          description: Operación completada
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: zone_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      description: Baja lógica para usuarios, mesas y productos; preserva referencias
+        históricas. Zonas pueden eliminarse. 409 si existen dependencias operativas
+        activas.
+  /restaurants/{restaurant_id}/products:
+    get:
+      operationId: listProducts
+      summary: Listar products
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+    post:
+      operationId: createProduct
+      summary: Crear products
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+  /restaurants/{restaurant_id}/products/{product_id}:
+    get:
+      operationId: getProduct
+      summary: Consultar products
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+    patch:
+      operationId: updateProduct
+      summary: Actualizar products
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+    delete:
+      operationId: deleteProduct
+      summary: Dar de baja products
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '204':
+          description: Operación completada
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      description: Baja lógica para usuarios, mesas y productos; preserva referencias
+        históricas. Zonas pueden eliminarse. 409 si existen dependencias operativas
+        activas.
+  /restaurants/{restaurant_id}/tables/{table_id}/state:
+    patch:
+      operationId: updateTableState
+      summary: Cambiar estado operativo de mesa
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Table'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: table_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TableStateUpdate'
+  /restaurants/{restaurant_id}/menu:
+    get:
+      operationId: getMenu
+      summary: Consultar menú interno
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Menu'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+  /restaurants/{restaurant_id}/orders:
+    get:
+      operationId: listOrders
+      summary: Listar pedidos
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: state
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderState'
+        description: ''
+      - name: table_id
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+    post:
+      operationId: createOrder
+      summary: Crear pedido
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      description: Precios y total se calculan en servidor; guardar precios históricos.
+        Productos y mesa deben pertenecer al restaurante.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+  /restaurants/{restaurant_id}/orders/{order_id}:
+    get:
+      operationId: getOrder
+      summary: Consultar pedido
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+  /restaurants/{restaurant_id}/orders/{order_id}/state:
+    patch:
+      operationId: updateOrderState
+      summary: Cambiar estado de pedido
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+      description: Transiciones y permisos por estado en README. 409 para transición
+        inválida.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderStateUpdate'
+  /restaurants/{restaurant_id}/availability:
+    get:
+      operationId: getInternalAvailability
+      summary: Consultar disponibilidad interna
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Availability'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: date
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Fecha local del restaurante
+      - name: party_size
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+  /restaurants/{restaurant_id}/reservations:
+    get:
+      operationId: listReservations
+      summary: Listar reservas internas
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationPage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: date
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: ''
+      - name: state
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/ReservationState'
+        description: ''
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+    post:
+      operationId: createReservation
+      summary: Crear reserva interna
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationCreate'
+  /restaurants/{restaurant_id}/reservations/{reservation_id}:
+    get:
+      operationId: getReservation
+      summary: Consultar reserva interna
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: reservation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+  /restaurants/{restaurant_id}/reservations/{reservation_id}/state:
+    patch:
+      operationId: updateReservationState
+      summary: Confirmar, cancelar o marcar llegada
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reservation'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: reservation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationStateUpdate'
+  /restaurants/{restaurant_id}/reports/occupancy:
+    get:
+      operationId: getOccupancyReport
+      summary: Consultar ocupación actual y tiempos del periodo
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+        description: ''
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+  /restaurants/{restaurant_id}/ws-ticket:
+    post:
+      operationId: createWebSocketTicket
+      summary: Emitir ticket efímero de WebSocket
+      tags:
+      - Gestión
+      security:
+      - StaffBearer: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebSocketTicket'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      x-roles:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+  /restaurants/{restaurant_id}/vision/config:
+    get:
+      operationId: getVisionConfig
+      summary: Consultar configuración local de visión
+      tags:
+      - Visión
+      security:
+      - VisionBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisionConfig'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      description: La credencial del dispositivo determina el restaurante y las cámaras
+        autorizadas.
+  /restaurants/{restaurant_id}/vision/events:
+    post:
+      operationId: ingestVisionEvent
+      summary: Recibir evento de visión sin video
+      tags:
+      - Visión
+      security:
+      - VisionBearer: []
+      responses:
+        '202':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAccepted'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      description: Validar restaurante y mesa con la credencial del dispositivo. Deduplicar
+        event_id; repetición idéntica devuelve duplicate=true; diferente contenido
+        con el mismo ID devuelve 409.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisionEvent'
+  /public/restaurants:
+    get:
+      operationId: listPublicRestaurants
+      summary: Buscar restaurantes publicados
+      tags:
+      - Público
+      security: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicRestaurantPage'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+        description: ''
+      - name: city
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description: ''
+      - name: cuisine
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description: ''
+      - name: party_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+        description: Filtra por capacidad; no garantiza disponibilidad para una fecha.
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        description: ''
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+        description: ''
+  /public/restaurants/{restaurant_id}:
+    get:
+      operationId: getPublicRestaurant
+      summary: Consultar perfil público
+      tags:
+      - Público
+      security: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicRestaurant'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+  /public/restaurants/{restaurant_id}/menu:
+    get:
+      operationId: getPublicMenu
+      summary: Consultar menú publicado
+      tags:
+      - Público
+      security: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Menu'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      description: Solo productos disponibles de restaurantes publicados.
+  /public/restaurants/{restaurant_id}/availability:
+    get:
+      operationId: getPublicAvailability
+      summary: Consultar horarios disponibles
+      tags:
+      - Público
+      security: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Availability'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: date
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Fecha local del restaurante
+      - name: party_size
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+        description: ''
+  /public/restaurants/{restaurant_id}/reservations:
+    post:
+      operationId: createPublicReservation
+      summary: Reservar mesa disponible
+      tags:
+      - Público
+      security: []
+      responses:
+        '201':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicReservationCreated'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Respuesta privada, no almacenar.
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 16
+          maxLength: 128
+        description: Clave aleatoria por intento lógico; reintentar con la misma clave
+          y cuerpo por 24 horas.
+      description: Asignación atómica de mesa en servidor. 409 si ya no hay disponibilidad.
+        Rate limiting por origen y restaurante; 429 incluye Retry-After.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicReservationCreate'
+  /public/restaurants/{restaurant_id}/reservations/{reservation_id}:
+    get:
+      operationId: getPublicReservation
+      summary: Consultar reserva con token privado
+      tags:
+      - Público
+      security:
+      - ReservationBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicReservation'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Respuesta privada, no almacenar.
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: reservation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+  /public/restaurants/{restaurant_id}/reservations/{reservation_id}/cancel:
+    post:
+      operationId: cancelPublicReservation
+      summary: Cancelar reserva con token privado
+      tags:
+      - Público
+      security:
+      - ReservationBearer: []
+      responses:
+        '200':
+          description: Operación completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicReservation'
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                - no-store
+              description: Respuesta privada, no almacenar.
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '403':
+          $ref: '#/components/responses/Error403'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '422':
+          $ref: '#/components/responses/Error422'
+        '429':
+          $ref: '#/components/responses/Error429'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - name: restaurant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      - name: reservation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: ''
+      description: Operación idempotente para reservas canceladas; 409 si ya llegó
+        o no asistió. Token vinculado a una sola reserva y restaurante.
+components:
+  schemas:
+    Role:
+      type: string
+      enum:
+      - platform_admin
+      - gerente
+      - mesero
+      - cocina
+    TableState:
+      type: string
+      enum:
+      - libre
+      - ocupada
+      - pidio
+      - cuenta
+    OrderState:
+      type: string
+      enum:
+      - pendiente
+      - en_preparacion
+      - lista
+      - servida
+      - cancelada
+    ReservationState:
+      type: string
+      enum:
+      - pendiente
+      - confirmada
+      - cancelada
+      - llego
+      - no_asistio
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 200
+        message:
+          type: string
+          minLength: 1
+          maxLength: 200
+        request_id:
+          type: string
+          minLength: 1
+          maxLength: 200
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              field:
+                type: string
+                minLength: 1
+                maxLength: 200
+              message:
+                type: string
+                minLength: 1
+                maxLength: 200
+            required:
+            - field
+            - message
+      required:
+      - code
+      - message
+      - request_id
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        restaurant_id:
+          type: string
+          format: uuid
+      required:
+      - email
+      - password
+      - restaurant_id
+    User:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/Role'
+        active:
+          type: boolean
+      required:
+      - id
+      - restaurant_id
+      - name
+      - email
+      - role
+      - active
+    TokenResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+        token_type:
+          type: string
+          enum:
+          - bearer
+        expires_in:
+          type: integer
+          minimum: 1
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - access_token
+      - token_type
+      - expires_in
+      - user
+    UserCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+        role:
+          type: string
+          enum:
+          - gerente
+          - mesero
+          - cocina
+      required:
+      - name
+      - email
+      - password
+      - role
+    UserUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        role:
+          type: string
+          enum:
+          - gerente
+          - mesero
+          - cocina
+        active:
+          type: boolean
+      required: []
+      minProperties: 1
+    OpeningInterval:
+      type: object
+      additionalProperties: false
+      properties:
+        day:
+          type: integer
+          minimum: 0
+          maximum: 6
+        opens:
+          type: string
+          pattern: ^([01]\d|2[0-3]):[0-5]\d$
+        closes:
+          type: string
+          pattern: ^([01]\d|2[0-3]):[0-5]\d$
+      required:
+      - day
+      - opens
+      - closes
+    RestaurantCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slug:
+          type: string
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 4000
+        city:
+          type: string
+          minLength: 1
+          maxLength: 200
+        address:
+          type: string
+          minLength: 1
+          maxLength: 200
+        cuisine:
+          type: string
+          minLength: 1
+          maxLength: 200
+        timezone:
+          type: string
+          examples:
+          - America/Mexico_City
+        opening_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpeningInterval'
+        image_url:
+          type: string
+          format: uri
+          pattern: ^https://
+        reservation_duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 480
+        unattended_threshold_seconds:
+          type: integer
+          minimum: 30
+          maximum: 3600
+        published:
+          type: boolean
+      required:
+      - name
+      - slug
+      - city
+      - address
+      - cuisine
+      - timezone
+      - opening_hours
+    RestaurantUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slug:
+          type: string
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 4000
+        city:
+          type: string
+          minLength: 1
+          maxLength: 200
+        address:
+          type: string
+          minLength: 1
+          maxLength: 200
+        cuisine:
+          type: string
+          minLength: 1
+          maxLength: 200
+        timezone:
+          type: string
+          examples:
+          - America/Mexico_City
+        opening_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpeningInterval'
+        image_url:
+          type: string
+          format: uri
+          pattern: ^https://
+        reservation_duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 480
+        unattended_threshold_seconds:
+          type: integer
+          minimum: 30
+          maximum: 3600
+        published:
+          type: boolean
+      required: []
+      minProperties: 1
+    Restaurant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slug:
+          type: string
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 4000
+        city:
+          type: string
+          minLength: 1
+          maxLength: 200
+        address:
+          type: string
+          minLength: 1
+          maxLength: 200
+        cuisine:
+          type: string
+          minLength: 1
+          maxLength: 200
+        timezone:
+          type: string
+          examples:
+          - America/Mexico_City
+        opening_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpeningInterval'
+        image_url:
+          type: string
+          format: uri
+          pattern: ^https://
+        reservation_duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 480
+        unattended_threshold_seconds:
+          type: integer
+          minimum: 30
+          maximum: 3600
+        published:
+          type: boolean
+      required:
+      - id
+      - name
+      - slug
+      - city
+      - address
+      - cuisine
+      - timezone
+      - opening_hours
+      - reservation_duration_minutes
+      - unattended_threshold_seconds
+      - published
+    PublicRestaurant:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slug:
+          type: string
+          pattern: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 4000
+        city:
+          type: string
+          minLength: 1
+          maxLength: 200
+        address:
+          type: string
+          minLength: 1
+          maxLength: 200
+        cuisine:
+          type: string
+          minLength: 1
+          maxLength: 200
+        timezone:
+          type: string
+          examples:
+          - America/Mexico_City
+        opening_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpeningInterval'
+        image_url:
+          type: string
+          format: uri
+          pattern: ^https://
+        reservation_duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 480
+      required:
+      - id
+      - name
+      - slug
+      - city
+      - address
+      - cuisine
+      - timezone
+      - opening_hours
+      - reservation_duration_minutes
+    TableCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 100
+        position_x:
+          type: number
+          minimum: 0
+          maximum: 1
+        position_y:
+          type: number
+          minimum: 0
+          maximum: 1
+        active:
+          type: boolean
+      required:
+      - name
+      - capacity
+      - position_x
+      - position_y
+    TableUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 100
+        position_x:
+          type: number
+          minimum: 0
+          maximum: 1
+        position_y:
+          type: number
+          minimum: 0
+          maximum: 1
+        active:
+          type: boolean
+      required: []
+      minProperties: 1
+    Table:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 100
+        position_x:
+          type: number
+          minimum: 0
+          maximum: 1
+        position_y:
+          type: number
+          minimum: 0
+          maximum: 1
+        active:
+          type: boolean
+        state:
+          $ref: '#/components/schemas/TableState'
+        unattended:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - restaurant_id
+      - name
+      - capacity
+      - position_x
+      - position_y
+      - active
+      - state
+      - unattended
+      - updated_at
+    TableStateUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        state:
+          $ref: '#/components/schemas/TableState'
+      required:
+      - state
+    Point:
+      type: array
+      items:
+        type: number
+        minimum: 0
+        maximum: 1
+      minItems: 2
+      maxItems: 2
+    ZoneCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        table_id:
+          type: string
+          format: uuid
+        camera_id:
+          type: string
+          minLength: 1
+          maxLength: 200
+        polygon:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          minItems: 3
+          maxItems: 64
+      required:
+      - table_id
+      - camera_id
+      - polygon
+    ZoneUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        table_id:
+          type: string
+          format: uuid
+        camera_id:
+          type: string
+          minLength: 1
+          maxLength: 200
+        polygon:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          minItems: 3
+          maxItems: 64
+      required: []
+      minProperties: 1
+    Zone:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        table_id:
+          type: string
+          format: uuid
+        camera_id:
+          type: string
+          minLength: 1
+          maxLength: 200
+        polygon:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          minItems: 3
+          maxItems: 64
+      required:
+      - id
+      - restaurant_id
+      - table_id
+      - camera_id
+      - polygon
+    ProductCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        category:
+          type: string
+          minLength: 1
+          maxLength: 200
+        price_minor:
+          type: integer
+          minimum: 0
+        available:
+          type: boolean
+      required:
+      - name
+      - category
+      - price_minor
+    ProductUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        category:
+          type: string
+          minLength: 1
+          maxLength: 200
+        price_minor:
+          type: integer
+          minimum: 0
+        available:
+          type: boolean
+      required: []
+      minProperties: 1
+    Product:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        category:
+          type: string
+          minLength: 1
+          maxLength: 200
+        price_minor:
+          type: integer
+          minimum: 0
+        available:
+          type: boolean
+      required:
+      - id
+      - restaurant_id
+      - name
+      - description
+      - category
+      - price_minor
+      - available
+    Menu:
+      type: object
+      additionalProperties: false
+      properties:
+        restaurant_id:
+          type: string
+          format: uuid
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+          examples:
+          - MXN
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+      required:
+      - restaurant_id
+      - currency
+      - products
+    OrderItemInput:
+      type: object
+      additionalProperties: false
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 100
+        notes:
+          type: string
+          maxLength: 500
+      required:
+      - product_id
+      - quantity
+    OrderCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        table_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemInput'
+          minItems: 1
+          maxItems: 100
+      required:
+      - table_id
+      - items
+    OrderItem:
+      type: object
+      additionalProperties: false
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        quantity:
+          type: integer
+          minimum: 1
+        unit_price_minor:
+          type: integer
+          minimum: 0
+        notes:
+          type: string
+          maxLength: 500
+      required:
+      - product_id
+      - name
+      - quantity
+      - unit_price_minor
+    Order:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        table_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/OrderState'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          minItems: 1
+        total_minor:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - restaurant_id
+      - table_id
+      - created_by
+      - state
+      - items
+      - total_minor
+      - currency
+      - created_at
+      - updated_at
+    OrderStateUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        state:
+          $ref: '#/components/schemas/OrderState'
+      required:
+      - state
+    AvailabilitySlot:
+      type: object
+      additionalProperties: false
+      properties:
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        party_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        available_tables:
+          type: integer
+          minimum: 0
+      required:
+      - starts_at
+      - ends_at
+      - party_size
+      - available_tables
+    Availability:
+      type: object
+      additionalProperties: false
+      properties:
+        restaurant_id:
+          type: string
+          format: uuid
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 200
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilitySlot'
+      required:
+      - restaurant_id
+      - timezone
+      - slots
+    PublicReservationCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        starts_at:
+          type: string
+          format: date-time
+        party_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        guest_name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        guest_email:
+          type: string
+          format: email
+          maxLength: 254
+        guest_phone:
+          type: string
+          minLength: 7
+          maxLength: 30
+        notes:
+          type: string
+          maxLength: 1000
+        privacy_consent:
+          const: true
+          type: boolean
+        privacy_notice_version:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+      - starts_at
+      - party_size
+      - guest_name
+      - guest_email
+      - privacy_consent
+      - privacy_notice_version
+    ReservationCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        starts_at:
+          type: string
+          format: date-time
+        party_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        guest_name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        guest_email:
+          type: string
+          format: email
+          maxLength: 254
+        guest_phone:
+          type: string
+          minLength: 7
+          maxLength: 30
+        notes:
+          type: string
+          maxLength: 1000
+        table_id:
+          type: string
+          format: uuid
+      required:
+      - starts_at
+      - party_size
+      - guest_name
+      - guest_email
+    PublicReservation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        party_size:
+          type: integer
+          minimum: 1
+        state:
+          $ref: '#/components/schemas/ReservationState'
+      required:
+      - id
+      - restaurant_id
+      - starts_at
+      - ends_at
+      - party_size
+      - state
+    PublicReservationCreated:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+        party_size:
+          type: integer
+          minimum: 1
+        state:
+          $ref: '#/components/schemas/ReservationState'
+        management_token:
+          type: string
+          minLength: 32
+          description: Se entrega una sola vez; tratar como secreto.
+      required:
+      - id
+      - restaurant_id
+      - starts_at
+      - ends_at
+      - party_size
+      - state
+      - management_token
+    Reservation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurant_id:
+          type: string
+          format: uuid
+        starts_at:
+          type: string
+          format: date-time
+        party_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        guest_name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        guest_email:
+          type: string
+          format: email
+          maxLength: 254
+        guest_phone:
+          type: string
+          minLength: 7
+          maxLength: 30
+        notes:
+          type: string
+          maxLength: 1000
+        table_id:
+          type: string
+          format: uuid
+        ends_at:
+          type: string
+          format: date-time
+        state:
+          $ref: '#/components/schemas/ReservationState'
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - restaurant_id
+      - starts_at
+      - ends_at
+      - party_size
+      - guest_name
+      - guest_email
+      - table_id
+      - state
+      - created_at
+    ReservationStateUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        state:
+          $ref: '#/components/schemas/ReservationState'
+      required:
+      - state
+    WebSocketTicket:
+      type: object
+      additionalProperties: false
+      properties:
+        ticket:
+          type: string
+          minLength: 32
+        expires_in:
+          type: integer
+          minimum: 1
+          maximum: 60
+        path:
+          type: string
+          examples:
+          - /api/v1/restaurants/{restaurant_id}/ws
+      required:
+      - ticket
+      - expires_in
+      - path
+    Report:
+      type: object
+      additionalProperties: false
+      properties:
+        restaurant_id:
+          type: string
+          format: uuid
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        total_tables:
+          type: integer
+          minimum: 0
+        occupied_tables:
+          type: integer
+          minimum: 0
+        occupancy_ratio:
+          type: number
+          minimum: 0
+          maximum: 1
+        unattended_events:
+          type: integer
+          minimum: 0
+        average_unattended_seconds:
+          type:
+          - number
+          - 'null'
+          minimum: 0
+      required:
+      - restaurant_id
+      - from
+      - to
+      - total_tables
+      - occupied_tables
+      - occupancy_ratio
+      - unattended_events
+      - average_unattended_seconds
+    EventAccepted:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        duplicate:
+          type: boolean
+      required:
+      - event_id
+      - duplicate
+    EventMesaDesatendida:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+          enum:
+          - '1.0'
+        type:
+          type: string
+          enum:
+          - mesa.desatendida
+        restaurant_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+          - vision
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            mesa_id:
+              type: string
+              format: uuid
+            desde:
+              type: string
+              format: date-time
+            duracion_seg:
+              type: integer
+              minimum: 0
+            severidad:
+              type: string
+              enum:
+              - advertencia
+              - critica
+          required:
+          - mesa_id
+          - desde
+          - duracion_seg
+          - severidad
+      required:
+      - event_id
+      - schema_version
+      - type
+      - restaurant_id
+      - occurred_at
+      - source
+      - data
+    EventMesaAtendida:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+          enum:
+          - '1.0'
+        type:
+          type: string
+          enum:
+          - mesa.atendida
+        restaurant_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+          - vision
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            mesa_id:
+              type: string
+              format: uuid
+            desde:
+              type: string
+              format: date-time
+            duracion_seg:
+              type: integer
+              minimum: 0
+          required:
+          - mesa_id
+          - desde
+          - duracion_seg
+      required:
+      - event_id
+      - schema_version
+      - type
+      - restaurant_id
+      - occurred_at
+      - source
+      - data
+    EventMesaEstadoActualizado:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+          enum:
+          - '1.0'
+        type:
+          type: string
+          enum:
+          - mesa.estado_actualizado
+        restaurant_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+          - api
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            mesa_id:
+              type: string
+              format: uuid
+            state:
+              $ref: '#/components/schemas/TableState'
+            unattended:
+              type: boolean
+          required:
+          - mesa_id
+          - state
+          - unattended
+      required:
+      - event_id
+      - schema_version
+      - type
+      - restaurant_id
+      - occurred_at
+      - source
+      - data
+    EventPedidoCreado:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+          enum:
+          - '1.0'
+        type:
+          type: string
+          enum:
+          - pedido.creado
+        restaurant_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+          - api
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            order_id:
+              type: string
+              format: uuid
+            mesa_id:
+              type: string
+              format: uuid
+            state:
+              $ref: '#/components/schemas/OrderState'
+          required:
+          - order_id
+          - mesa_id
+          - state
+      required:
+      - event_id
+      - schema_version
+      - type
+      - restaurant_id
+      - occurred_at
+      - source
+      - data
+    EventPedidoEstadoActualizado:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+          enum:
+          - '1.0'
+        type:
+          type: string
+          enum:
+          - pedido.estado_actualizado
+        restaurant_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+          - api
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            order_id:
+              type: string
+              format: uuid
+            mesa_id:
+              type: string
+              format: uuid
+            state:
+              $ref: '#/components/schemas/OrderState'
+          required:
+          - order_id
+          - mesa_id
+          - state
+      required:
+      - event_id
+      - schema_version
+      - type
+      - restaurant_id
+      - occurred_at
+      - source
+      - data
+    EventReservaEstadoActualizado:
+      type: object
+      additionalProperties: false
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+          enum:
+          - '1.0'
+        type:
+          type: string
+          enum:
+          - reserva.estado_actualizado
+        restaurant_id:
+          type: string
+          format: uuid
+        occurred_at:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+          - api
+        data:
+          type: object
+          additionalProperties: false
+          properties:
+            reservation_id:
+              type: string
+              format: uuid
+            state:
+              $ref: '#/components/schemas/ReservationState'
+          required:
+          - reservation_id
+          - state
+      required:
+      - event_id
+      - schema_version
+      - type
+      - restaurant_id
+      - occurred_at
+      - source
+      - data
+    Event:
+      oneOf:
+      - $ref: '#/components/schemas/EventMesaDesatendida'
+      - $ref: '#/components/schemas/EventMesaAtendida'
+      - $ref: '#/components/schemas/EventMesaEstadoActualizado'
+      - $ref: '#/components/schemas/EventPedidoCreado'
+      - $ref: '#/components/schemas/EventPedidoEstadoActualizado'
+      - $ref: '#/components/schemas/EventReservaEstadoActualizado'
+    VisionEvent:
+      oneOf:
+      - $ref: '#/components/schemas/EventMesaDesatendida'
+      - $ref: '#/components/schemas/EventMesaAtendida'
+    RestaurantPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Restaurant'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    PublicRestaurantPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicRestaurant'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    UserPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    TablePage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    ZonePage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Zone'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    ProductPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    OrderPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    ReservationPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reservation'
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        offset:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - total
+      - limit
+      - offset
+    VisionConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        restaurant_id:
+          type: string
+          format: uuid
+        unattended_threshold_seconds:
+          type: integer
+          minimum: 30
+        zones:
+          type: array
+          items:
+            $ref: '#/components/schemas/Zone'
+      required:
+      - restaurant_id
+      - unattended_threshold_seconds
+      - zones
+  securitySchemes:
+    StaffBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT de personal con sub, role, restaurant_id, exp, iss y aud verificados.
+    VisionBearer:
+      type: http
+      scheme: bearer
+      description: Credencial de dispositivo aprovisionada fuera de la API pública;
+        vinculada a restaurante y cámaras.
+    ReservationBearer:
+      type: http
+      scheme: bearer
+      description: Token opaco aleatorio de gestión de UNA reserva; solo se almacena
+        su hash en servidor.
+  responses:
+    Error400:
+      description: Solicitud inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error401:
+      description: Credencial ausente, inválida o expirada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error403:
+      description: Permiso insuficiente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error404:
+      description: Recurso no encontrado o ajeno al restaurante
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error409:
+      description: Conflicto de estado o disponibilidad
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error422:
+      description: Error de validación
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Error429:
+      description: Límite de intentos excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        Retry-After:
+          description: Segundos antes de reintentar
+          schema:
+            type: integer
+            minimum: 1
+    Error500:
+      description: Error interno sin detalles sensibles
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
